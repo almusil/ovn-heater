@@ -83,6 +83,30 @@
       "
     loop: "{{ containers.stdout_lines }}"
 
+- name: Start process perf monitoring
+  hosts: all
+  tasks:
+    - name: Enumerate northd containers
+      ansible.builtin.shell: |
+        docker ps --filter='name=ovn-central-' --noheading --format={{ '{{.Names}}' }}
+      register: northd_containers
+
+    - name: Enable flamegraph for ovn-northd
+      include_tasks: enable-flamegraph.yml
+      vars:
+        type: ovn-northd
+      loop: "{{ northd_containers.stdout_lines }}"
+
+    - name: Enumerate controller containers
+      ansible.builtin.shell: |
+        docker ps --filter='name=ovn-scale-' --noheading --format={{ '{{.Names}}' }}
+      register: controller_containers
+
+    - name: Enable flamegraph for ovn-controller
+      include_tasks: enable-flamegraph.yml
+      vars:
+        type: ovn-controller
+      loop: "{{ controller_containers.stdout_lines }}"
 
 - name: Set up SSL remote for local ovsdb-server
   hosts: worker_hosts

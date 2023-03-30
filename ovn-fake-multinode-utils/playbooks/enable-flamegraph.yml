@@ -1,0 +1,10 @@
+---
+- name: Install js-d3-flame-graph
+  ansible.builtin.shell: docker exec {{ item }} bash -c "dnf -y install js-d3-flame-graph"
+
+- name: Get pid of {{ type }}
+  ansible.builtin.shell: docker exec {{ item }} bash -c "cat /var/run/ovn/{{ type }}.pid"
+  register: pid
+
+- name: Start perf for {{ type }}
+  ansible.builtin.shell: docker exec {{ item }} bash -c "nohup perf record -a -g -F 99 -p {{ pid.stdout }} &>/dev/null &"
